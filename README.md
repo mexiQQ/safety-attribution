@@ -1,3 +1,5 @@
+Please note this repo is modified from "https://github.com/boyiwei/alignment-attribution-code", we are too late to directly fork from original repo.
+
 # Assessing the Brittleness of Safety Alignment via Pruning and Low-Rank Modifications
 
 This repository provides an original implementation of [*Assessing the Brittleness of Safety Alignment via Pruning and Low-Rank Modifications*](https://arxiv.org/abs/2402.05162) by Boyi Wei*, Kaixuan Huang*, Yangsibo Huang*, Tinghao Xie, Xiangyu Qi, Mengzhou Xia, Prateek Mittal, Mengdi Wang and Peter Henderson.
