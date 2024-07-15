@@ -2283,13 +2283,6 @@ def prune_fluctuation_decouple_utility_and_safety(
         mlp_metric = torch.stack(mlp_metric_list)
         mlp_metric = standarlization(mlp_metric)
         prune_metric = torch.cat([attn_metric.view(-1), mlp_metric.view(-1)])
-        
-        # sorted_prune, indices = torch.sort(prune_metric, descending=True)
-        # compression_weight = torch.ones_like(indices)
-        # compression_weight[indices < attn_metric.numel()] = 512.0 / 3
-        # threshold = sorted_prune[torch.argmin(torch.abs(torch.cumsum(compression_weight, 0) - torch.sum(compression_weight)*(1 - args.sparsity_ratio)))]
-        # attn_mask = (attn_metric > threshold)
-        # mlp_mask = (mlp_metric > threshold)
 
         attn_metric_extra = torch.stack(extra_attn_metric_list)
         attn_metric_extra = standarlization(attn_metric_extra)
@@ -2299,28 +2292,46 @@ def prune_fluctuation_decouple_utility_and_safety(
         mlp_metric_extra = standarlization(mlp_metric_extra)
         prune_metric_extra = torch.cat([attn_metric_extra.view(-1), mlp_metric_extra.view(-1)])
 
+        min_prune = prune_metric.min()
+        max_prune = prune_metric.max()
+        min_prune_extra = prune_metric_extra.min()
+        max_prune_extra = prune_metric_extra.max()
+
+        # Normalize the metrics to range [0, 1]
+        normalized_prune_metric = (prune_metric - min_prune) / (max_prune - min_prune)
+        normalized_prune_metric_extra = (prune_metric_extra - min_prune_extra) / (max_prune_extra - min_prune_extra)
+                                                                          
         sum_metric = prune_metric + prune_metric_extra
         diff_metric = prune_metric_extra - prune_metric
 
-        attn_mask = torch.zeros_like(attn_metric)
-        mlp_mask = torch.zeros_like(mlp_metric)
-
+        # Case 1
         # we first use sum metric to confirm compoenets that are redundant for both utility and safety, how the percent, we set mask value to 0
+        sorted_prune, indices = torch.sort(sum_metric, descending=True)
+        compression_weight = torch.ones_like(indices)
+        compression_weight[indices < attn_metric.numel()] = 512.0 / 3
+        threshold = sorted_prune[torch.argmin(torch.abs(torch.cumsum(compression_weight, 0) - torch.sum(compression_weight)*(1 - args.sparsity_ratio)))]
 
+        mask = (sum_metric < threshold).float()
+        attn_mask = mask[:attn_metric.numel()].view(attn_metric.shape)
+        mlp_mask = mask[attn_metric.numel():].view(mlp_metric.shape)
+
+        # Case 2 
         # we then use diff metric to remove largest value to confirm components that contribute for safety, we set mask value to 1 
 
+        # Case 3
         # we then use diff metric to remove smallest value to confirm components that contribute for utility, we set mask value to 2  
 
+        # Case 4
         # exclude the above components will contribute to both utility and safety, we set mask value to 3
-
     else:
         pass
         # attn_mask = torch.stack(attn_mask) 
         # mlp_mask = torch.stack(mlp_mask)
 
-    # for idx in range(len(layers)):
-    #     compress(model.model.layers[idx], attn_mask[idx], None, attn_baseline_inp_list[idx], None, device, unstr=args.unstr)
-    #     compress(model.model.layers[idx], None, mlp_mask[idx], None, mlp_baseline_inp_list[idx], device, unstr=args.unstr)
+    import pdb; pdb.set_trace()
+    for idx in range(len(layers)):
+        compress(model.model.layers[idx], attn_mask[idx], None, attn_baseline_inp_list[idx], None, device, real_prune=False)
+        compress(model.model.layers[idx], None, mlp_mask[idx], None, mlp_baseline_inp_list[idx], device, real_prune=False)
 
     model.config.use_cache = use_cache
     torch.cuda.empty_cache()
