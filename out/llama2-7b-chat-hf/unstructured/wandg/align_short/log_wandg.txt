@@ -1,0 +1,2 @@
+method	actual_sparsity	metric	score
+wandg	0.000001	PPL	6.4936

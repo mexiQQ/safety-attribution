@@ -14,6 +14,6 @@ CUDA_VISIBLE_DEVICES=0 python main.py \
     --save $save_dir \
     --eval_zero_shot \
     --decouple_align_utility \
-    # --eval_attack \
-    # --save_attack_res \
+    --eval_attack \
+    --save_attack_res \
     # --decouple_align_utility
