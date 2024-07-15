@@ -56,7 +56,6 @@ def get_llm(model_name, cache_dir="llm_weights"):
             device_map="auto",
         )
 
-        import pdb; pdb.set_trace()
         for i in range(32):
             model.model.layers[i].self_attn.o_proj.bias = torch.nn.Parameter(torch.zeros((model.model.layers[i].self_attn.o_proj.out_features), device=model.device).half())
             model.model.layers[i].mlp.down_proj.bias = torch.nn.Parameter(torch.zeros((model.model.layers[i].mlp.down_proj.out_features), device=model.device).half())

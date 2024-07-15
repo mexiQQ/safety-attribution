@@ -1,7 +1,6 @@
 model="llama2-7b-chat-hf"
 method="wandg_set_difference"
 type="unstructured"
-suffix="weightonly"
 data="align_short"
 save_dir="out/$model/$type/${method}/${data}/"
 

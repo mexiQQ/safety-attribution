@@ -4,8 +4,6 @@ method="wandg"
 # data="alpaca_cleaned_no_safety"
 data="align_short"
 type="unstructured"
-suffix="weightonly"
-# save_dir="out/$model/$type/${method}_${suffix}/${data}/"
 save_dir="out/$model/$type/${method}/${data}/"
 
 CUDA_VISIBLE_DEVICES=0 python main.py \

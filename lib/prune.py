@@ -2271,69 +2271,69 @@ def prune_fluctuation_decouple_utility_and_safety(
                 mlp_baseline_inp_list.append(wrapped_layers[name].baseline_inp.type(torch.half))
                 extra_mlp_baseline_inp_list.append(wrapped_layers_extra[name].baseline_inp.type(torch.half))
 
-            standarlization = lambda x: (x - torch.mean(x, axis=1, keepdim=True)) / torch.std(x, axis=1, keepdim=True)
-            if structure == "AL-AM":
-                attn_metric = torch.stack(attn_metric_list)
-                attn_metric = standarlization(attn_metric)
-                attn_metric = attn_metric.reshape(len(layers), -1, 128).mean(dim=2)
-                
-                mlp_metric = torch.stack(mlp_metric_list)
-                mlp_metric = standarlization(mlp_metric)
-                prune_metric = torch.cat([attn_metric.view(-1), mlp_metric.view(-1)])
-                
-                # sorted_prune, indices = torch.sort(prune_metric, descending=True)
-                # compression_weight = torch.ones_like(indices)
-                # compression_weight[indices < attn_metric.numel()] = 512.0 / 3
-                # threshold = sorted_prune[torch.argmin(torch.abs(torch.cumsum(compression_weight, 0) - torch.sum(compression_weight)*(1 - args.sparsity_ratio)))]
-                # attn_mask = (attn_metric > threshold)
-                # mlp_mask = (mlp_metric > threshold)
+    standarlization = lambda x: (x - torch.mean(x, axis=1, keepdim=True)) / torch.std(x, axis=1, keepdim=True)
+    if structure == "AL-AM":
+        attn_metric = torch.stack(attn_metric_list)
+        attn_metric = standarlization(attn_metric)
+        attn_metric = attn_metric.reshape(len(layers), -1, 128).mean(dim=2)
+        
+        mlp_metric = torch.stack(mlp_metric_list)
+        mlp_metric = standarlization(mlp_metric)
+        prune_metric = torch.cat([attn_metric.view(-1), mlp_metric.view(-1)])
+        
+        # sorted_prune, indices = torch.sort(prune_metric, descending=True)
+        # compression_weight = torch.ones_like(indices)
+        # compression_weight[indices < attn_metric.numel()] = 512.0 / 3
+        # threshold = sorted_prune[torch.argmin(torch.abs(torch.cumsum(compression_weight, 0) - torch.sum(compression_weight)*(1 - args.sparsity_ratio)))]
+        # attn_mask = (attn_metric > threshold)
+        # mlp_mask = (mlp_metric > threshold)
 
-                attn_metric_extra = torch.stack(extra_attn_metric_list)
-                attn_metric_extra = standarlization(attn_metric_extra)
-                attn_metric_extra = attn_metric_extra.reshape(len(layers), -1, 128).mean(dim=2)
-                
-                mlp_metric_extra = torch.stack(extra_mlp_metric_list)
-                mlp_metric_extra = standarlization(mlp_metric_extra)
-                prune_metric_extra = torch.cat([attn_metric_extra.view(-1), mlp_metric_extra.view(-1)])
+        attn_metric_extra = torch.stack(extra_attn_metric_list)
+        attn_metric_extra = standarlization(attn_metric_extra)
+        attn_metric_extra = attn_metric_extra.reshape(len(layers), -1, 128).mean(dim=2)
+        
+        mlp_metric_extra = torch.stack(extra_mlp_metric_list)
+        mlp_metric_extra = standarlization(mlp_metric_extra)
+        prune_metric_extra = torch.cat([attn_metric_extra.view(-1), mlp_metric_extra.view(-1)])
 
-                sum_metric = prune_metric + prune_metric_extra
-                diff_metric = prune_metric_extra - prune_metric
+        sum_metric = prune_metric + prune_metric_extra
+        diff_metric = prune_metric_extra - prune_metric
 
-                attn_mask = torch.zeros_like(attn_metric)
-                mlp_mask = torch.zeros_like(mlp_metric)
+        attn_mask = torch.zeros_like(attn_metric)
+        mlp_mask = torch.zeros_like(mlp_metric)
 
-                # we first use sum metric to confirm compoenets that are redundant for both utility and safety, how the percent, we set mask value to 0
+        # we first use sum metric to confirm compoenets that are redundant for both utility and safety, how the percent, we set mask value to 0
 
-                # we then use diff metric to remove largest value to confirm components that contribute for safety, we set mask value to 1 
+        # we then use diff metric to remove largest value to confirm components that contribute for safety, we set mask value to 1 
 
-                # we then use diff metric to remove smallest value to confirm components that contribute for utility, we set mask value to 2  
+        # we then use diff metric to remove smallest value to confirm components that contribute for utility, we set mask value to 2  
 
-                # exclude the above components will contribute to both utility and safety, we set mask value to 3
+        # exclude the above components will contribute to both utility and safety, we set mask value to 3
 
-            else:
-                pass
-                # attn_mask = torch.stack(attn_mask) 
-                # mlp_mask = torch.stack(mlp_mask)
+    else:
+        pass
+        # attn_mask = torch.stack(attn_mask) 
+        # mlp_mask = torch.stack(mlp_mask)
 
-        for idx in range(len(layers)):
-            compress(model.model.layers[idx], attn_mask[idx], None, attn_baseline_inp_list[idx], None, device, unstr=args.unstr)
-            compress(model.model.layers[idx], None, mlp_mask[idx], None, mlp_baseline_inp_list[idx], device, unstr=args.unstr)
+    # for idx in range(len(layers)):
+    #     compress(model.model.layers[idx], attn_mask[idx], None, attn_baseline_inp_list[idx], None, device, unstr=args.unstr)
+    #     compress(model.model.layers[idx], None, mlp_mask[idx], None, mlp_baseline_inp_list[idx], device, unstr=args.unstr)
 
-        # for j in range(args.nsamples):
-        #     with torch.no_grad():
-        #         outs[j] = layer(
-        #             inps[j].unsqueeze(0),
-        #             attention_mask=attention_mask[j],
-        #             position_ids=position_ids[j],
-        #         )[0].squeeze(0)
-        #     with torch.no_grad():
-        #         outs_extra[j] = layer_extra(
-        #             inps_extra[j].unsqueeze(0),
-        #             attention_mask=attention_mask_extra[j],
-        #             position_ids=position_ids_extra[j],
-        #         )[0].squeeze(0)
-        inps, outs = outs, inps
-        inps_extra, outs_extra = outs_extra, inps_extra
+    # for j in range(args.nsamples):
+    #     with torch.no_grad():
+    #         outs[j] = layer(
+    #             inps[j].unsqueeze(0),
+    #             attention_mask=attention_mask[j],
+    #             position_ids=position_ids[j],
+    #         )[0].squeeze(0)
+    #     with torch.no_grad():
+    #         outs_extra[j] = layer_extra(
+    #             inps_extra[j].unsqueeze(0),
+    #             attention_mask=attention_mask_extra[j],
+    #             position_ids=position_ids_extra[j],
+    #         )[0].squeeze(0)
+    inps, outs = outs, inps
+    inps_extra, outs_extra = outs_extra, inps_extra
 
     model.config.use_cache = use_cache
     torch.cuda.empty_cache()
