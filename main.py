@@ -50,11 +50,18 @@ def get_llm(model_name, cache_dir="llm_weights"):
     ]:
         model = AutoModelForCausalLM.from_pretrained(
             modeltype2path[model_name],
-            torch_dtype=torch.bfloat16,
+            torch_dtype=torch.float16,
             # cache_dir=cache_dir,
             low_cpu_mem_usage=True,
             device_map="auto",
         )
+
+        import pdb; pdb.set_trace()
+        for i in range(32):
+            model.model.layers[i].self_attn.o_proj.bias = torch.nn.Parameter(torch.zeros((model.model.layers[i].self_attn.o_proj.out_features), device=model.device).half())
+            model.model.layers[i].mlp.down_proj.bias = torch.nn.Parameter(torch.zeros((model.model.layers[i].mlp.down_proj.out_features), device=model.device).half())
+            torch.nn.init.zeros_(model.model.layers[i].self_attn.o_proj.bias)
+            torch.nn.init.zeros_(model.model.layers[i].mlp.down_proj.bias)
 
     model.seqlen = model.config.max_position_embeddings
     return model
@@ -76,7 +83,7 @@ def main():
     parser.add_argument(
         "--sparsity_type",
         type=str,
-        choices=["unstructured", "4:8", "2:4"],
+        choices=["unstructured", "structured", "4:8", "2:4"],
         default="unstructured",
     )
     parser.add_argument(
@@ -208,7 +215,7 @@ def main():
 
     # Handling n:m sparsity
     prune_n, prune_m = 0, 0
-    if args.sparsity_type != "unstructured":
+    if args.sparsity_type not in ["unstructured", "structured"]:
         assert (
             args.sparsity_ratio == 0.5
         ), "sparsity ratio must be 0.5 for structured N:M sparsity"

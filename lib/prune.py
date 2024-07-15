@@ -19,7 +19,7 @@ metrics = {
     'WIFN': lambda wrapped_layers, subset, name: (torch.abs(subset[name].weight.data) * torch.sqrt(wrapped_layers[name].scaler_inp.reshape((1,-1)))).mean(axis=0),
 }
 
-def compress(layer, attn_mask, mlp_mask, attn_mean_inp, mlp_mean_inp, device, bias=True, unstr=False):
+def compress(layer, attn_mask, mlp_mask, attn_mean_inp, mlp_mean_inp, device, bias=True, real_prune=False):
     """
     Compress a model layer by masking or pruning based on the given masks.
     
@@ -36,7 +36,7 @@ def compress(layer, attn_mask, mlp_mask, attn_mean_inp, mlp_mean_inp, device, bi
     Returns:
         None: This function modifies the layer in-place and doesn't return anything.
     """
-    if unstr:  # Only mask, do not really prune
+    if not real_prune:  # Only mask, do not really prune
         # Attention Weight Masking
         if attn_mask is not None:
             retain_heads = torch.count_nonzero(attn_mask)
@@ -2000,9 +2000,8 @@ def prune_fluctuation_utility(
         subset.update({'mlp.down_proj': find_layers(layer)['mlp.down_proj']})
 
         wrapped_layers = {}
-
         for name in subset:
-            wrapped_layers[name] = BiasGPT(subset[name])
+            wrapped_layers[name] = BiasGPT(subset[name], )
 
         # compute safety activation
         def add_batch(name, tar):
@@ -2010,27 +2009,28 @@ def prune_fluctuation_utility(
                 wrapped_layers[name].add_batch(inp[0].data, out.data, tar)
             return tmp
 
-        handles = []
-        for name in wrapped_layers:
-            handles.append(
-                subset[name].register_forward_hook(add_batch(name, tars[j]))
-            )
-
         for j in range(args.nsamples):
+            handles = []
+            for name in wrapped_layers:
+                handles.append(
+                    subset[name].register_forward_hook(add_batch(name, tars[j]))
+                )
+
             with torch.no_grad():
                 outs[j] = layer(
                     inps[j].unsqueeze(0),
                     attention_mask=attention_mask[j],
                     position_ids=position_ids[j],
-                )[0]
+                )[0].squeeze(0)
 
-        for h in handles:
-            h.remove()
+            for h in handles:
+                h.remove()
 
         for name in subset:
             print(f"pruning layer {i} name {name}")
             structure = "AL-AM" # UL-UM or AL-AM
             metric = "WIFV"
+            # import pdb; pdb.set_trace()
             if name == 'self_attn.o_proj':
                 W_metric = metrics[metric](wrapped_layers, subset, name) ** 2
                 if structure == "UL-UM":
@@ -2051,48 +2051,35 @@ def prune_fluctuation_utility(
                     mlp_metric_list.append(W_metric.cpu())
                 mlp_baseline_inp_list.append(wrapped_layers[name].baseline_inp.type(torch.half))
 
-            standarlization = lambda x: (x - torch.mean(x, axis=1, keepdim=True)) / torch.std(x, axis=1, keepdim=True)
-            if structure is "AL-AM":
-                attn_metric = torch.stack(attn_metric_list)
-                attn_metric = standarlization(attn_metric)
-                attn_metric = attn_metric.reshape(len(layers), -1, 128).mean(dim=2)
-                
-                mlp_metric = torch.stack(mlp_metric_list)
-                mlp_metric = standarlization(mlp_metric)
-                
-                prune_metric = torch.cat([attn_metric.view(-1), mlp_metric.view(-1)])
-                sorted_prune, indices = torch.sort(prune_metric, descending=True)
-                compression_weight = torch.ones_like(indices)
-                compression_weight[indices < attn_metric.numel()] = 512.0 / 3
-                threshold = sorted_prune[torch.argmin(torch.abs(torch.cumsum(compression_weight, 0) - torch.sum(compression_weight)*(1 - args.pruning_ratio)))]
-                attn_mask = (attn_metric > threshold)
-                mlp_mask = (mlp_metric > threshold)
-
-                # For components that are redundant for utility, we set mask value to 0, others to 1
-                # Save mask for the later statistics work
-            else:
-                attn_mask = torch.stack(attn_mask) 
-                mlp_mask = torch.stack(mlp_mask)
-
-        for idx in range(len(layers)):
-            compress(model.model.layers[idx], attn_mask[idx], None, attn_baseline_inp_list[idx], None, device, unstr=args.unstr)
-            compress(model.model.layers[idx], None, mlp_mask[idx], None, mlp_baseline_inp_list[idx], device, unstr=args.unstr)
-
-        # for j in range(args.nsamples):
-        #     with torch.no_grad():
-        #         outs[j] = layer(
-        #             inps[j].unsqueeze(0),
-        #             attention_mask=attention_mask[j],
-        #             position_ids=position_ids[j],
-        #         )[0].squeeze(0)
-        #     with torch.no_grad():
-        #         outs_extra[j] = layer_extra(
-        #             inps_extra[j].unsqueeze(0),
-        #             attention_mask=attention_mask_extra[j],
-        #             position_ids=position_ids_extra[j],
-        #         )[0].squeeze(0)
         inps, outs = outs, inps
-        inps_extra, outs_extra = outs_extra, inps_extra
+        torch.cuda.empty_cache()
+
+    standarlization = lambda x: (x - torch.mean(x, axis=1, keepdim=True)) / torch.std(x, axis=1, keepdim=True)
+    if structure == "AL-AM":
+        attn_metric = torch.stack(attn_metric_list)
+        attn_metric = standarlization(attn_metric)
+        attn_metric = attn_metric.reshape(len(layers), -1, 128).mean(dim=2)
+        
+        mlp_metric = torch.stack(mlp_metric_list)
+        mlp_metric = standarlization(mlp_metric)
+        
+        prune_metric = torch.cat([attn_metric.view(-1), mlp_metric.view(-1)])
+        sorted_prune, indices = torch.sort(prune_metric, descending=True)
+        compression_weight = torch.ones_like(indices)
+        compression_weight[indices < attn_metric.numel()] = 512.0 / 3
+        threshold = sorted_prune[torch.argmin(torch.abs(torch.cumsum(compression_weight, 0) - torch.sum(compression_weight)*(1 - args.sparsity_ratio)))]
+        attn_mask = (attn_metric > threshold)
+        mlp_mask = (mlp_metric > threshold)
+
+        # For components that are redundant for utility, we set mask value to 0, others to 1
+        # Save mask for the later statistics work
+    else:
+        attn_mask = torch.stack(attn_mask) 
+        mlp_mask = torch.stack(mlp_mask)
+
+    for idx in range(len(layers)):
+        compress(model.model.layers[idx], attn_mask[idx], None, attn_baseline_inp_list[idx], None, device, real_prune=False)
+        compress(model.model.layers[idx], None, mlp_mask[idx], None, mlp_baseline_inp_list[idx], device, real_prune=False)
 
     model.config.use_cache = use_cache
     torch.cuda.empty_cache() 
@@ -2210,13 +2197,13 @@ def prune_fluctuation_decouple_utility_and_safety(
                 wrapped_layers[name].add_batch(inp[0].data, out.data, tar)
             return tmp
 
-        handles = []
-        for name in wrapped_layers:
-            handles.append(
-                subset[name].register_forward_hook(add_batch(name, tars[j]))
-            )
-
         for j in range(args.nsamples):
+            handles = []
+            for name in wrapped_layers:
+                handles.append(
+                    subset[name].register_forward_hook(add_batch(name, tars[j]))
+                )
+
             with torch.no_grad():
                 outs[j] = layer(
                     inps[j].unsqueeze(0),
@@ -2224,8 +2211,8 @@ def prune_fluctuation_decouple_utility_and_safety(
                     position_ids=position_ids[j],
                 )[0]
 
-        for h in handles:
-            h.remove()
+            for h in handles:
+                h.remove()
 
         # compute utility activation
         def add_batch_extra(name, tar):
@@ -2233,15 +2220,15 @@ def prune_fluctuation_decouple_utility_and_safety(
                 wrapped_layers_extra[name].add_batch(inp[0].data, out.data, tar)
             return tmp
 
-        handles = []
-        for name in wrapped_layers_extra:
-            handles.append(
-                subset_extra[name].register_forward_hook(
-                    add_batch_extra(name, tars_extra[j])
-                )
-            )
-
         for j in range(args.nsamples):
+            handles = []
+            for name in wrapped_layers_extra:
+                handles.append(
+                    subset_extra[name].register_forward_hook(
+                        add_batch_extra(name, tars_extra[j])
+                    )
+                )
+
             with torch.no_grad():
                 outs_extra[j] = layer_extra(
                     inps_extra[j].unsqueeze(0),
@@ -2249,8 +2236,8 @@ def prune_fluctuation_decouple_utility_and_safety(
                     position_ids=position_ids_extra[j],
                 )[0]
 
-        for h in handles:
-            h.remove()
+            for h in handles:
+                h.remove()
 
         for name in subset:
             print(f"pruning layer {i} name {name}")
@@ -2285,7 +2272,7 @@ def prune_fluctuation_decouple_utility_and_safety(
                 extra_mlp_baseline_inp_list.append(wrapped_layers_extra[name].baseline_inp.type(torch.half))
 
             standarlization = lambda x: (x - torch.mean(x, axis=1, keepdim=True)) / torch.std(x, axis=1, keepdim=True)
-            if structure is "AL-AM":
+            if structure == "AL-AM":
                 attn_metric = torch.stack(attn_metric_list)
                 attn_metric = standarlization(attn_metric)
                 attn_metric = attn_metric.reshape(len(layers), -1, 128).mean(dim=2)

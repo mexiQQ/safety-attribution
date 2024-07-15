@@ -53,7 +53,7 @@ class BiasGPT:
     """
     This class wraps a GPT layer for specific operations.
     """
-    def __init__(self, layer, metric):
+    def __init__(self, layer, metric="WIFV"):
         self.layer = layer
         self.dev = self.layer.weight.device
         self.out_dim = layer.weight.data.shape[0]
@@ -67,13 +67,20 @@ class BiasGPT:
         else:   
             self.fluc_inp = torch.zeros((self.in_dim), device=self.dev)
 
-    def add_batch(self, inp, out):
+    def add_batch(self, inp, out, tar=None):
         if len(inp.shape) == 2:
             inp = inp.unsqueeze(0) # batch, sequence length, dimension
+        if tar is not None:
+            if len(tar.shape) == 2:
+                tar = tar.unsqueeze(0)
+            mask = tar.ne(-100)
         batch_size = inp.shape[0]
         if isinstance(self.layer, nn.Linear):
             if len(inp.shape) == 3:
                 inp = inp.reshape((-1, inp.shape[-1]))
+            if tar is not None:
+                mask = mask.flatten()
+                inp = inp[mask]  # remove -100's
             inp = inp.t()   # (dim, seqlen)
 
         old_baseline_inp = self.baseline_inp
