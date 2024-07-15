@@ -2209,7 +2209,7 @@ def prune_fluctuation_decouple_utility_and_safety(
                     inps[j].unsqueeze(0),
                     attention_mask=attention_mask[j],
                     position_ids=position_ids[j],
-                )[0]
+                )[0].squeeze(0)
 
             for h in handles:
                 h.remove()
@@ -2234,7 +2234,7 @@ def prune_fluctuation_decouple_utility_and_safety(
                     inps_extra[j].unsqueeze(0),
                     attention_mask=attention_mask_extra[j],
                     position_ids=position_ids_extra[j],
-                )[0]
+                )[0].squeeze(0)
 
             for h in handles:
                 h.remove()
@@ -2270,6 +2270,9 @@ def prune_fluctuation_decouple_utility_and_safety(
                     extra_mlp_metric_list.append(W_metric_extra.cpu())
                 mlp_baseline_inp_list.append(wrapped_layers[name].baseline_inp.type(torch.half))
                 extra_mlp_baseline_inp_list.append(wrapped_layers_extra[name].baseline_inp.type(torch.half))
+
+        inps, outs = outs, inps
+        inps_extra, outs_extra = outs_extra, inps_extra
 
     standarlization = lambda x: (x - torch.mean(x, axis=1, keepdim=True)) / torch.std(x, axis=1, keepdim=True)
     if structure == "AL-AM":
@@ -2318,22 +2321,6 @@ def prune_fluctuation_decouple_utility_and_safety(
     # for idx in range(len(layers)):
     #     compress(model.model.layers[idx], attn_mask[idx], None, attn_baseline_inp_list[idx], None, device, unstr=args.unstr)
     #     compress(model.model.layers[idx], None, mlp_mask[idx], None, mlp_baseline_inp_list[idx], device, unstr=args.unstr)
-
-    # for j in range(args.nsamples):
-    #     with torch.no_grad():
-    #         outs[j] = layer(
-    #             inps[j].unsqueeze(0),
-    #             attention_mask=attention_mask[j],
-    #             position_ids=position_ids[j],
-    #         )[0].squeeze(0)
-    #     with torch.no_grad():
-    #         outs_extra[j] = layer_extra(
-    #             inps_extra[j].unsqueeze(0),
-    #             attention_mask=attention_mask_extra[j],
-    #             position_ids=position_ids_extra[j],
-    #         )[0].squeeze(0)
-    inps, outs = outs, inps
-    inps_extra, outs_extra = outs_extra, inps_extra
 
     model.config.use_cache = use_cache
     torch.cuda.empty_cache()
