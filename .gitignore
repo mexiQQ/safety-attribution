@@ -1,0 +1,5 @@
+.DS_Store
+lib/__pycache__
+out/
+lm-evaluation-harness/
+.temp/
