@@ -19,6 +19,8 @@ from lib.prune import (
     get_mask,
     prune_wandg_set_difference,
     prune_attention_head,
+    prune_fluctuation_utility,
+    prune_fluctuation_decouple_utility_and_safety
 )
 from lib.model_wrapper import prune_wanda_v2, prune_wandg
 from lib.model_wrapper_low import make_low_rank
@@ -95,6 +97,8 @@ def main():
             "wandg",
             "wandg_set_difference",
             "low_rank",
+            "fluctuation",
+            "fluctuation_set_difference"
         ],
     )
     parser.add_argument(
@@ -344,6 +348,30 @@ def main():
         elif "ablate" in args.prune_method:
             prune_ablate(
                 args, model, tokenizer, device, prune_n=prune_n, prune_m=prune_m
+            )
+        elif args.prune_method == "fluctuation":
+            prune_fluctuation_utility(
+                args,
+                model,
+                tokenizer,
+                model_base,
+                model_extra,
+                device,
+                prune_n=prune_n,
+                prune_m=prune_m,
+                prune_data=args.prune_data,
+            )
+        elif args.prune_method == "fluctuation_set_difference":
+            prune_fluctuation_decouple_utility_and_safety(
+                args,
+                model,
+                tokenizer,
+                model_base,
+                model_extra,
+                device,
+                prune_n=prune_n,
+                prune_m=prune_m,
+                prune_data=args.prune_data,
             )
 
     if args.prune_method == "low_rank":
