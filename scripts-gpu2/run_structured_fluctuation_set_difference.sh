@@ -8,7 +8,7 @@ CUDA_VISIBLE_DEVICES=2 python main.py \
     --model $model \
     --prune_method $method \
     --prune_data $data \
-    --sparsity_ratio 0.1 \
+    --sparsity_ratio 0.01 \
     --swap_space 128 \
     --temp_dir .temp2 \
     --sparsity_type $type \

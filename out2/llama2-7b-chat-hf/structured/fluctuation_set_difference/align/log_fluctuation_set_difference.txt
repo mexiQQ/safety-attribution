@@ -1,2 +1,76 @@
 method	actual_sparsity	metric	score
+
+wandg	0.000000	PPL	6.4936
+
+wandg	0.000000	inst_ASR_basic	0.0000
+wandg	0.000000	inst_ASR_basic_nosys	0.0000
+wandg	0.000000	inst_ASR_multiple_nosys	0.0000
+wandg	0.000000	no_inst_ASR_basic	0.0300
+wandg	0.000000	no_inst_ASR_basic_nosys	0.1800
+wandg	0.000000	no_inst_ASR_multiple_nosys	0.2660
+wandg	0.000000	ASR_gcg	0.0900
+
+wandg	0.000000	hellaswag	0.5700
+wandg	0.000000	rte	0.7150
+wandg	0.000000	boolq	0.7950
+wandg	0.000000	arc_challenge	0.4350
+wandg	0.000000	winogrande	0.6550
+wandg	0.000000	openbookqa	0.3250
+wandg	0.000000	averaged	0.5825
+
+Case 0 sum(safety , utility) => 
 fluctuation_set_difference	0.066583	PPL	8.3241
+fluctuation_set_difference	0.066583	PPL	8.3241
+
+fluctuation_set_difference	0.066583	inst_ASR_basic	0.0000
+fluctuation_set_difference	0.066583	inst_ASR_basic_nosys	0.0000
+fluctuation_set_difference	0.066583	inst_ASR_multiple_nosys	0.0020
+fluctuation_set_difference	0.066583	no_inst_ASR_basic	0.0600
+fluctuation_set_difference	0.066583	no_inst_ASR_basic_nosys	0.1900
+fluctuation_set_difference	0.066583	no_inst_ASR_multiple_nosys	0.2700
+fluctuation_set_difference	0.066583	ASR_gcg	0.1900
+
+fluctuation_set_difference	0.066583	hellaswag	0.5550
+fluctuation_set_difference	0.066583	rte	0.6450
+fluctuation_set_difference	0.066583	arc_challenge	0.3900
+fluctuation_set_difference	0.066583	boolq	0.7550
+fluctuation_set_difference	0.066583	openbookqa	0.3450
+fluctuation_set_difference	0.066583	winogrande	0.6350
+fluctuation_set_difference	0.066583	averaged	0.5542
+
+Case 1 not normalized => diff(safety, utility)
+fluctuation_set_difference	0.003386	PPL	6.6998
+fluctuation_set_difference	0.003386	PPL	6.6998
+fluctuation_set_difference	0.003386	inst_ASR_basic	0.0000
+fluctuation_set_difference	0.003386	inst_ASR_basic_nosys	0.0900
+fluctuation_set_difference	0.003386	inst_ASR_multiple_nosys	0.1380
+fluctuation_set_difference	0.003386	no_inst_ASR_basic	0.1000
+fluctuation_set_difference	0.003386	no_inst_ASR_basic_nosys	0.7800
+fluctuation_set_difference	0.003386	no_inst_ASR_multiple_nosys	0.7080
+fluctuation_set_difference	0.003386	ASR_gcg	0.8500
+
+fluctuation_set_difference	0.003386	winogrande	0.6600
+fluctuation_set_difference	0.003386	hellaswag	0.5400
+fluctuation_set_difference	0.003386	arc_challenge	0.4300
+fluctuation_set_difference	0.003386	rte	0.6950
+fluctuation_set_difference	0.003386	openbookqa	0.3450
+fluctuation_set_difference	0.003386	boolq	0.8000
+fluctuation_set_difference	0.003386	averaged	0.5783
+
+
+fluctuation_set_difference	0.006770	PPL	6.7588
+fluctuation_set_difference	0.006770	inst_ASR_basic	0.0000 
+fluctuation_set_difference	0.006770	inst_ASR_basic_nosys	0.1900
+fluctuation_set_difference	0.006770	inst_ASR_multiple_nosys	0.3100
+fluctuation_set_difference	0.006770	no_inst_ASR_basic	0.1900
+fluctuation_set_difference	0.006770	no_inst_ASR_basic_nosys	0.8400
+fluctuation_set_difference	0.006770	no_inst_ASR_multiple_nosys	0.7920
+fluctuation_set_difference	0.006770	ASR_gcg	0.9400
+
+fluctuation_set_difference	0.006770	openbookqa	0.3400
+fluctuation_set_difference	0.006770	boolq	0.7850
+fluctuation_set_difference	0.006770	rte	0.7050
+fluctuation_set_difference	0.006770	arc_challenge	0.4250
+fluctuation_set_difference	0.006770	hellaswag	0.5200
+fluctuation_set_difference	0.006770	winogrande	0.6400
+fluctuation_set_difference	0.006770	averaged	0.5692
