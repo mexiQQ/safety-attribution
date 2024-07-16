@@ -2311,7 +2311,7 @@ def prune_fluctuation_decouple_utility_and_safety(
         compression_weight[indices < attn_metric.numel()] = 512.0 / 3
         threshold = sorted_prune[torch.argmin(torch.abs(torch.cumsum(compression_weight, 0) - torch.sum(compression_weight)*(1 - args.sparsity_ratio)))]
 
-        mask = (sum_metric < threshold).float()
+        mask = sum_metric < threshold
         attn_mask = mask[:attn_metric.numel()].view(attn_metric.shape)
         mlp_mask = mask[attn_metric.numel():].view(mlp_metric.shape)
 
@@ -2328,7 +2328,7 @@ def prune_fluctuation_decouple_utility_and_safety(
         # attn_mask = torch.stack(attn_mask) 
         # mlp_mask = torch.stack(mlp_mask)
 
-    import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     for idx in range(len(layers)):
         compress(model.model.layers[idx], attn_mask[idx], None, attn_baseline_inp_list[idx], None, device, real_prune=False)
         compress(model.model.layers[idx], None, mlp_mask[idx], None, mlp_baseline_inp_list[idx], device, real_prune=False)
