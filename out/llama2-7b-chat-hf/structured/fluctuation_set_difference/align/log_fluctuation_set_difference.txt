@@ -7,3 +7,5 @@ fluctuation_set_difference	0.134220	openbookqa	0.3100
 fluctuation_set_difference	0.134220	boolq	0.7050
 fluctuation_set_difference	0.134220	winogrande	0.6150
 fluctuation_set_difference	0.134220	averaged	0.5292
+fluctuation_set_difference	0.134220	PPL	11.0995
+fluctuation_set_difference	0.134220	PPL	11.0995

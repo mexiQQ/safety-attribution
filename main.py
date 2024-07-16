@@ -485,7 +485,8 @@ def main():
         )
 
         if args.decouple_align_utility or args.decouple_align_misalign:
-            vllm_model.llm_engine.tokenizer.add_special_tokens({"pad_token": "[PAD]"})
+            import pdb; pdb.set_trace()
+            vllm_model.llm_engine.tokenizer.tokenizer.add_special_tokens({"pad_token": "[PAD]"})
         for include_inst in [True, False]:
             suffix = "inst_" if include_inst else "no_inst_"
             print("********************************")
