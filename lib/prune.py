@@ -2311,7 +2311,7 @@ def prune_fluctuation_decouple_utility_and_safety(
         compression_weight[indices < attn_metric.numel()] = 512.0 / 3
         threshold = sorted_prune[torch.argmin(torch.abs(torch.cumsum(compression_weight, 0) - torch.sum(compression_weight)*(1 - args.sparsity_ratio)))]
 
-        mask = sum_metric < threshold
+        mask = sum_metric > threshold
         attn_mask = mask[:attn_metric.numel()].view(attn_metric.shape)
         mlp_mask = mask[attn_metric.numel():].view(mlp_metric.shape)
 

@@ -472,7 +472,7 @@ def main():
     if args.eval_attack:
         # note: since vLLM only supports loading from the path, we need to save the pruned model first for faster evaluation. We can reuse this temp folder to save disk spaces
         pruned_path = os.path.join(
-            SAVE_PATH,
+            args.temp_dir,
             f"{args.prune_method}_usediff_{args.use_diff}_recover_{args.recover_from_base}",
         )
         model.save_pretrained(pruned_path)
@@ -480,7 +480,7 @@ def main():
             model=pruned_path, 
             tokenizer=modeltype2path[args.model], 
             dtype="bfloat16", 
-            swap_space=128,
+            swap_space=args.swap_space,
             gpu_memory_utilization=0.6
         )
 
