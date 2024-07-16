@@ -4,12 +4,14 @@ method="wandg"
 # data="alpaca_cleaned_no_safety"
 data="align_short"
 type="unstructured"
-save_dir="out/$model/$type/${method}/${data}/"
+save_dir="out1/$model/$type/${method}/${data}/"
 
-CUDA_VISIBLE_DEVICES=0 python main.py \
+CUDA_VISIBLE_DEVICES=1 python main.py \
     --model $model \
     --prune_method $method \
     --prune_data $data \
+    --swap_space 42 \
+    --temp_dir .temp1 \
     --sparsity_ratio 0.5 \
     --sparsity_type $type \
     --neg_prune \

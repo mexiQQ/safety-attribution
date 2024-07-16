@@ -74,6 +74,10 @@ def main():
         "--seed", type=int, default=0, help="Seed for sampling the calibration data."
     )
     parser.add_argument(
+        "--swap_space", type=int, default=42, help="Swap space for attack evaluation."
+    )
+    parser.add_argument("--temp_dir", type=str, default=".temp")
+    parser.add_argument(
         "--nsamples", type=int, default=128, help="Number of calibration samples."
     )
     parser.add_argument(

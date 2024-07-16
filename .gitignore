@@ -2,5 +2,8 @@
 lib/__pycache__
 lm-evaluation-harness/
 .temp/
+.temp0/
+.temp1/
+.temp2/
 *.jsonl
 *.pkl
