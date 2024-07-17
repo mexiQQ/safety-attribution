@@ -18,7 +18,7 @@ wandg	0.000000	winogrande	0.6550
 wandg	0.000000	openbookqa	0.3250
 wandg	0.000000	averaged	0.5825
 
-Case 0 sum(safety , utility) => 
+Case 0 sum(safety , utility) -> 0.066583 (0.1)
 fluctuation_set_difference	0.066583	PPL	8.3241
 fluctuation_set_difference	0.066583	PPL	8.3241
 
@@ -38,7 +38,7 @@ fluctuation_set_difference	0.066583	openbookqa	0.3450
 fluctuation_set_difference	0.066583	winogrande	0.6350
 fluctuation_set_difference	0.066583	averaged	0.5542
 
-Case 1 not normalized => diff(safety, utility)
+Case 1 not normalized => largest(diff(safety, utility)) => 0.006770 (0.01)
 fluctuation_set_difference	0.003386	PPL	6.6998
 fluctuation_set_difference	0.003386	PPL	6.6998
 fluctuation_set_difference	0.003386	inst_ASR_basic	0.0000
@@ -57,7 +57,6 @@ fluctuation_set_difference	0.003386	openbookqa	0.3450
 fluctuation_set_difference	0.003386	boolq	0.8000
 fluctuation_set_difference	0.003386	averaged	0.5783
 
-
 fluctuation_set_difference	0.006770	PPL	6.7588
 fluctuation_set_difference	0.006770	inst_ASR_basic	0.0000 
 fluctuation_set_difference	0.006770	inst_ASR_basic_nosys	0.1900
@@ -74,3 +73,74 @@ fluctuation_set_difference	0.006770	arc_challenge	0.4250
 fluctuation_set_difference	0.006770	hellaswag	0.5200
 fluctuation_set_difference	0.006770	winogrande	0.6400
 fluctuation_set_difference	0.006770	averaged	0.5692
+
+Case 2 not normalized => smallest(diff(safety, utility)) => 0.03366 (0.05)
+
+fluctuation_set_difference	0.006660	PPL	7.7783
+fluctuation_set_difference	0.006660	inst_ASR_basic	0.0000
+fluctuation_set_difference	0.006660	inst_ASR_basic_nosys	0.0000
+fluctuation_set_difference	0.006660	inst_ASR_multiple_nosys	0.0020
+fluctuation_set_difference	0.006660	no_inst_ASR_basic	0.0000
+fluctuation_set_difference	0.006660	no_inst_ASR_basic_nosys	0.1300
+fluctuation_set_difference	0.006660	no_inst_ASR_multiple_nosys	0.2420
+fluctuation_set_difference	0.006660	ASR_gcg	0.1200
+fluctuation_set_difference	0.006660	hellaswag	0.5250
+fluctuation_set_difference	0.006660	rte	0.6550
+fluctuation_set_difference	0.006660	boolq	0.7650
+fluctuation_set_difference	0.006660	openbookqa	0.2900
+fluctuation_set_difference	0.006660	arc_challenge	0.4100
+fluctuation_set_difference	0.006660	winogrande	0.6600
+fluctuation_set_difference	0.006660	averaged	0.5508
+
+fluctuation_set_difference	0.033676	PPL	22.7738
+fluctuation_set_difference	0.033676	inst_ASR_basic	0.0000
+fluctuation_set_difference	0.033676	inst_ASR_basic_nosys	0.0000
+fluctuation_set_difference	0.033676	inst_ASR_multiple_nosys	0.0020
+fluctuation_set_difference	0.033676	no_inst_ASR_basic	0.0900
+fluctuation_set_difference	0.033676	no_inst_ASR_basic_nosys	0.1200
+fluctuation_set_difference	0.033676	no_inst_ASR_multiple_nosys	0.3680
+fluctuation_set_difference	0.033676	ASR_gcg	0.0200
+fluctuation_set_difference	0.033676	winogrande	0.6650
+fluctuation_set_difference	0.033676	arc_challenge	0.2900
+fluctuation_set_difference	0.033676	openbookqa	0.2450
+fluctuation_set_difference	0.033676	hellaswag	0.4600
+fluctuation_set_difference	0.033676	rte	0.5600
+fluctuation_set_difference	0.033676	boolq	0.5850
+fluctuation_set_difference	0.033676	averaged	0.4675
+
+fluctuation_set_difference	0.067530	PPL	180.2294
+fluctuation_set_difference	0.067530	inst_ASR_basic	0.0000
+fluctuation_set_difference	0.067530	inst_ASR_basic_nosys	0.0000
+fluctuation_set_difference	0.067530	inst_ASR_multiple_nosys	0.2620
+fluctuation_set_difference	0.067530	no_inst_ASR_basic	0.2300
+fluctuation_set_difference	0.067530	no_inst_ASR_basic_nosys	0.4800
+fluctuation_set_difference	0.067530	no_inst_ASR_multiple_nosys	0.5840
+fluctuation_set_difference	0.067530	ASR_gcg	0.1400
+fluctuation_set_difference	0.067530	winogrande	0.5650
+fluctuation_set_difference	0.067530	boolq	0.5950
+fluctuation_set_difference	0.067530	rte	0.5600
+fluctuation_set_difference	0.067530	arc_challenge	0.2500
+fluctuation_set_difference	0.067530	openbookqa	0.2250
+fluctuation_set_difference	0.067530	hellaswag	0.3650
+fluctuation_set_difference	0.067530	averaged	0.4267
+
+
+Case 4 not normalized => smallest(diff(safety, utility))
+For case 4, there is no need for exaperiments, because remove them will both has big influence to the safety and 
+
+fluctuation_set_difference	0.066583	PPL	8.3241
+fluctuation_set_difference	0.066583	inst_ASR_basic	0.0000
+fluctuation_set_difference	0.066583	inst_ASR_basic_nosys	0.0000
+fluctuation_set_difference	0.066583	inst_ASR_multiple_nosys	0.0020
+fluctuation_set_difference	0.066583	no_inst_ASR_basic	0.0600
+fluctuation_set_difference	0.066583	no_inst_ASR_basic_nosys	0.1900
+fluctuation_set_difference	0.066583	no_inst_ASR_multiple_nosys	0.2700
+fluctuation_set_difference	0.066583	ASR_gcg	0.1900
+fluctuation_set_difference	0.066583	winogrande	0.6350
+fluctuation_set_difference	0.066583	rte	0.6450
+fluctuation_set_difference	0.066583	openbookqa	0.3450
+fluctuation_set_difference	0.066583	boolq	0.7550
+fluctuation_set_difference	0.066583	arc_challenge	0.3900
+fluctuation_set_difference	0.066583	hellaswag	0.5550
+fluctuation_set_difference	0.066583	averaged	0.5542
+fluctuation_set_difference	0.000001	PPL	6.4921

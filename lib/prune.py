@@ -2303,55 +2303,95 @@ def prune_fluctuation_decouple_utility_and_safety(
         sum_metric = prune_metric + prune_metric_extra
         diff_metric = prune_metric - prune_metric_extra
 
-        case = 1 
-        if case == 0:
+        attr_atten_mask = torch.full_like(attn_metric, 4)
+        attr_mlp_mask = torch.full_like(mlp_metric, 4)
+
+        import pdb; pdb.set_trace()
+        case = args.fluctuation_case
+        if case == 0 or case == 4:
             # Case 0 
             # we first use sum metric to confirm compoenets that are redundant for both utility and safety, how the percent, we set mask value to 0
             # I may use sparsity = 0.1 based on the experiments
             sorted_prune, indices = torch.sort(sum_metric, descending=True)
             compression_weight = torch.ones_like(indices)
             compression_weight[indices < attn_metric.numel()] = 512.0 / 3
-            threshold = sorted_prune[torch.argmin(torch.abs(torch.cumsum(compression_weight, 0) - torch.sum(compression_weight)*(1 - args.sparsity_ratio)))]
+
+            if case == 4:
+                threshold = sorted_prune[torch.argmin(torch.abs(torch.cumsum(compression_weight, 0) - torch.sum(compression_weight)*(1 - args.fluctuation_case_four_hyper[0])))]
+            else:
+                threshold = sorted_prune[torch.argmin(torch.abs(torch.cumsum(compression_weight, 0) - torch.sum(compression_weight)*(1 - args.sparsity_ratio)))]
 
             mask = sum_metric > threshold
             attn_mask = mask[:attn_metric.numel()].view(attn_metric.shape)
             mlp_mask = mask[attn_metric.numel():].view(mlp_metric.shape)
-        elif case == 1:
+
+            if case == 4:
+                attr_atten_mask[~attn_mask] = 0
+                attr_mlp_mask[~mlp_mask] = 0
+
+        if  case == 1 or case == 4:
             # Case 1 
             # we then use diff metric to remove largest value to confirm components that contribute for safety, we set mask value to 1 
             sorted_prune, indices = torch.sort(diff_metric, descending=True)
             compression_weight = torch.ones_like(indices)
             compression_weight[indices < attn_metric.numel()] = 512.0 / 3
-            threshold = sorted_prune[torch.argmin(torch.abs(torch.cumsum(compression_weight, 0) - torch.sum(compression_weight)*(args.sparsity_ratio)))]
+
+            if case == 4:
+                threshold = sorted_prune[torch.argmin(torch.abs(torch.cumsum(compression_weight, 0) - torch.sum(compression_weight)*(args.fluctuation_case_four_hyper[1])))]
+            else:
+                threshold = sorted_prune[torch.argmin(torch.abs(torch.cumsum(compression_weight, 0) - torch.sum(compression_weight)*(args.sparsity_ratio)))]
 
             mask = diff_metric < threshold
             attn_mask = mask[:attn_metric.numel()].view(attn_metric.shape)
             mlp_mask = mask[attn_metric.numel():].view(mlp_metric.shape)
-        elif case == 2:
+
+            if case == 4:
+                attr_atten_mask[~attn_mask] = 1
+                attr_mlp_mask[~mlp_mask] = 1 
+
+        if case == 2 or case == 4:
             # Case 2 
             # we then use diff metric to remove smallest value to confirm components that contribute for utility, we set mask value to 2  
             sorted_prune, indices = torch.sort(diff_metric, descending=True)
             compression_weight = torch.ones_like(indices)
             compression_weight[indices < attn_metric.numel()] = 512.0 / 3
-            threshold = sorted_prune[torch.argmin(torch.abs(torch.cumsum(compression_weight, 0) - torch.sum(compression_weight)*(1-args.sparsity_ratio)))]
+
+            if case == 4:
+                threshold = sorted_prune[torch.argmin(torch.abs(torch.cumsum(compression_weight, 0) - torch.sum(compression_weight)*(1-args.fluctuation_case_four_hyper[2])))]
+            else:
+                threshold = sorted_prune[torch.argmin(torch.abs(torch.cumsum(compression_weight, 0) - torch.sum(compression_weight)*(1-args.sparsity_ratio)))]
 
             mask = diff_metric > threshold
             attn_mask = mask[:attn_metric.numel()].view(attn_metric.shape)
             mlp_mask = mask[attn_metric.numel():].view(mlp_metric.shape)
-        elif case == 3:
+
+            attr_atten_mask[~attn_mask] = 2
+            attr_mlp_mask[~mlp_mask] = 2 
+
+        if case == 3 or case == 4:
             # Case 3 
             # exclude the above components will contribute to both utility and safety, we set mask value to 3
-            pass
+            if case == 4:
+                attr_atten_mask[attr_atten_mask == 4] = 3 
+                attr_mlp_mask[attr_mlp_mask == 4] = 3
+                
+        if case == 4:
+            save_filepath = os.path.join(args.save, f"attribution")
+            if not os.path.exists(save_filepath):
+                os.makedirs(save_filepath)
 
+            torch.save(attr_atten_mask, f"{save_filepath}/atten_attr.pt")
+            torch.save(attr_mlp_mask, f"{save_filepath}/mlp_attr.pt")
     else:
         pass
         # attn_mask = torch.stack(attn_mask) 
         # mlp_mask = torch.stack(mlp_mask)
 
     # import pdb; pdb.set_trace()
-    for idx in range(len(layers)):
-        compress(model.model.layers[idx], attn_mask[idx], None, attn_baseline_inp_list[idx], None, device, real_prune=False)
-        compress(model.model.layers[idx], None, mlp_mask[idx], None, mlp_baseline_inp_list[idx], device, real_prune=False)
+    if args.fluctuation_case != 4:
+        for idx in range(len(layers)):
+            compress(model.model.layers[idx], attn_mask[idx], None, attn_baseline_inp_list[idx], None, device, real_prune=False)
+            compress(model.model.layers[idx], None, mlp_mask[idx], None, mlp_baseline_inp_list[idx], device, real_prune=False)
 
     model.config.use_cache = use_cache
     torch.cuda.empty_cache()

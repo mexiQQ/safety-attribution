@@ -112,6 +112,17 @@ def main():
         ],
     )
     parser.add_argument(
+        "--fluctuation_case", type=int, default=4, help="Fluctuation case."
+    )
+    parser.add_argument(
+        '--fluctuation_case_four_hyper',
+        type=float,
+        nargs=3,
+        required=True,
+        default=[0.1, 0.01, 0.05],
+        help='three float hyperparameters'
+    )
+    parser.add_argument(
         "--prune_data",
         type=str,
         choices=[

@@ -9,6 +9,8 @@ CUDA_VISIBLE_DEVICES=2 python main.py \
     --prune_method $method \
     --prune_data $data \
     --sparsity_ratio 0.01 \
+    --fluctuation_case 4 \
+    --fluctuation_case_four_hyper 0.1 0.01 0.1 \
     --swap_space 128 \
     --temp_dir .temp2 \
     --sparsity_type $type \
