@@ -2073,6 +2073,20 @@ def prune_fluctuation_utility(
 
         # For components that are redundant for utility, we set mask value to 0, others to 1
         # Save mask for the later statistics work
+
+        if args.fluctuation_case == 4:
+            save_filepath = os.path.join(args.save, f"attribution")
+            if not os.path.exists(save_filepath):
+                os.makedirs(save_filepath)
+
+            attr_atten_mask = torch.zeros_like(attn_mask)
+            attr_mlp_mask = torch.zeros_like(mlp_mask)
+
+            attr_atten_mask[attn_mask] = 1
+            attr_mlp_mask[mlp_mask] = 1
+
+            torch.save(attr_atten_mask, f"{save_filepath}/atten_attr.pt")
+            torch.save(attr_mlp_mask, f"{save_filepath}/mlp_attr.pt")
     else:
         attn_mask = torch.stack(attn_mask) 
         mlp_mask = torch.stack(mlp_mask)
@@ -2374,7 +2388,7 @@ def prune_fluctuation_decouple_utility_and_safety(
             if case == 4:
                 attr_atten_mask[attr_atten_mask == 4] = 3 
                 attr_mlp_mask[attr_mlp_mask == 4] = 3
-                
+
         if case == 4:
             save_filepath = os.path.join(args.save, f"attribution")
             if not os.path.exists(save_filepath):

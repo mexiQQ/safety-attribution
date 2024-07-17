@@ -7,3 +7,4 @@ lm-evaluation-harness/
 .temp2/
 *.jsonl
 *.pkl
+*.pt

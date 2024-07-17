@@ -118,7 +118,7 @@ def main():
         '--fluctuation_case_four_hyper',
         type=float,
         nargs=3,
-        required=True,
+        required=False,
         default=[0.1, 0.01, 0.05],
         help='three float hyperparameters'
     )

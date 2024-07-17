@@ -127,20 +127,3 @@ fluctuation_set_difference	0.067530	averaged	0.4267
 
 Case 4 not normalized => smallest(diff(safety, utility))
 For case 4, there is no need for exaperiments, because remove them will both has big influence to the safety and 
-
-fluctuation_set_difference	0.066583	PPL	8.3241
-fluctuation_set_difference	0.066583	inst_ASR_basic	0.0000
-fluctuation_set_difference	0.066583	inst_ASR_basic_nosys	0.0000
-fluctuation_set_difference	0.066583	inst_ASR_multiple_nosys	0.0020
-fluctuation_set_difference	0.066583	no_inst_ASR_basic	0.0600
-fluctuation_set_difference	0.066583	no_inst_ASR_basic_nosys	0.1900
-fluctuation_set_difference	0.066583	no_inst_ASR_multiple_nosys	0.2700
-fluctuation_set_difference	0.066583	ASR_gcg	0.1900
-fluctuation_set_difference	0.066583	winogrande	0.6350
-fluctuation_set_difference	0.066583	rte	0.6450
-fluctuation_set_difference	0.066583	openbookqa	0.3450
-fluctuation_set_difference	0.066583	boolq	0.7550
-fluctuation_set_difference	0.066583	arc_challenge	0.3900
-fluctuation_set_difference	0.066583	hellaswag	0.5550
-fluctuation_set_difference	0.066583	averaged	0.5542
-fluctuation_set_difference	0.000001	PPL	6.4921
