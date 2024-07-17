@@ -1,4 +1,6 @@
 import torch
+import numpy as np
+import matplotlib.pyplot as plt
 
 # Load the matrices
 matrix1 = torch.load('/home/jli265/workspace/alignment-attribution-code/out2/llama2-7b-chat-hf/structured/fluctuation/alpaca_cleaned_no_safety/attribution/atten_attr.pt')
@@ -63,3 +65,4 @@ print("MLP Module Role Transfer Percentages (global):\n", mlp_transfer.numpy())
 print("Attention Module Role Transfer Percentages (block level):\n", block_transfer_att.numpy())
 print("MLP Module Role Transfer Percentages (block level):\n", block_transfer_mlp.numpy())
 print("Global Role Transfer Rates:\n", global_transfer.numpy())
+
