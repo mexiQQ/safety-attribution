@@ -2,7 +2,7 @@ model="llama2-7b-chat-hf"
 method="fluctuation_set_difference"
 type="structured"
 data="align"
-save_dir="out/$model/$type/${method}/${data}/"
+save_dir="out0/$model/$type/${method}/${data}/"
 
 CUDA_VISIBLE_DEVICES=0 python main.py \
     --model $model \

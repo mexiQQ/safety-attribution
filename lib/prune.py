@@ -2030,7 +2030,6 @@ def prune_fluctuation_utility(
             print(f"pruning layer {i} name {name}")
             structure = "AL-AM" # UL-UM or AL-AM
             metric = "WIFV"
-            # import pdb; pdb.set_trace()
             if name == 'self_attn.o_proj':
                 W_metric = metrics[metric](wrapped_layers, subset, name) ** 2
                 if structure == "UL-UM":
@@ -2320,7 +2319,6 @@ def prune_fluctuation_decouple_utility_and_safety(
         attr_atten_mask = torch.full_like(attn_metric, 4)
         attr_mlp_mask = torch.full_like(mlp_metric, 4)
 
-        import pdb; pdb.set_trace()
         case = args.fluctuation_case
         if case == 0 or case == 4:
             # Case 0 

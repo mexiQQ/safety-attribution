@@ -2,7 +2,7 @@ model="llama2-7b-chat-hf"
 method="wandg_set_difference"
 type="unstructured"
 data="align_short"
-save_dir="out/$model/$type/${method}/${data}/"
+save_dir="out0/$model/$type/${method}/${data}/"
 
 CUDA_VISIBLE_DEVICES=0 python main.py \
     --model $model \

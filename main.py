@@ -38,6 +38,7 @@ modeltype2path = {
     "llama2-13b-chat-hf": "meta-llama/Llama-2-13b-chat-hf",
     "llama2-7b-hf": "meta-llama/Llama-2-7b-hf",
     "llama2-13b-hf": "meta-llama/Llama-2-13b-hf",
+    "llama-7B-hf": "baffo32/decapoda-research-llama-7B-hf"
 }
 
 
@@ -47,6 +48,7 @@ def get_llm(model_name, cache_dir="llm_weights"):
         "llama2-13b-chat-hf",
         "llama2-7b-hf",
         "llama2-13b-hf",
+        "llama-7B-hf"
     ]:
         model = AutoModelForCausalLM.from_pretrained(
             modeltype2path[model_name],
@@ -126,6 +128,7 @@ def main():
         "--prune_data",
         type=str,
         choices=[
+            "gsm8k",
             "wikitext",
             "alpaca",
             "alpaca_cleaned",
@@ -242,6 +245,10 @@ def main():
         modeltype2path[args.model], use_fast=False
     )
 
+    if args.model == "llama-7B-hf":
+        tokenizer.add_special_tokens({"pad_token": "[PAD]"})
+        model.resize_token_embeddings(len(tokenizer))
+
     if (args.decouple_align_misalign or args.decouple_align_utility) and (
         tokenizer.pad_token is None
     ):
@@ -272,10 +279,6 @@ def main():
     ):  # for 30b and 65b we use device_map to load onto multiple A6000 GPUs, thus the processing here.
         device = model.hf_device_map["lm_head"]
     print("use device ", device)
-
-    if args.save_model:
-        model.save_pretrained(args.save_model)
-        tokenizer.save_pretrained(args.save_model)
 
     if args.sparsity_ratio != 0:
         print("pruning starts")
@@ -410,6 +413,11 @@ def main():
         sparsity_ratio = args.sparsity_ratio
     print(f"sparsity sanity check {sparsity_ratio:.6f}")
     print("*" * 30)
+
+    if args.save_model:
+        model.save_pretrained(args.save_model)
+        tokenizer.save_pretrained(args.save_model)
+
     ################################################################
     ppl_test = eval_ppl(args, model, tokenizer, device)
     print(f"wikitext perplexity {ppl_test}")

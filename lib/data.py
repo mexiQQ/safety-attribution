@@ -110,6 +110,51 @@ def get_alpaca(nsamples, seed, seqlen, tokenizer, disentangle=False, dataset="al
     return trainloader, None
 
 
+def get_gsm8k(nsamples, seed, seqlen, tokenizer):
+    # Load train and test datasets
+    ds = load_dataset("openai/gsm8k", "main", split="train")
+    random.seed(seed)
+    
+    # Encode datasets
+    trainloader = []
+    for i in range(nsamples):
+        # Randomly sample an index from the dataset
+        idx = random.randint(0, len(ds) - 1)
+        example = ds[idx]
+        
+        # Tokenize the problem statement (prompt) and solution (response)
+        trainenc_prompt = tokenizer(example["question"], return_tensors="pt")
+        trainenc_response = tokenizer(example["answer"], return_tensors="pt")
+        
+        # Concatenate prompt and response
+        inp = torch.cat((trainenc_prompt.input_ids, trainenc_response.input_ids), dim=1)
+        
+        # Create target sequence, shifting the response tokens by one position
+        tar = inp.clone()
+        trainenc_prompt_len = trainenc_prompt.input_ids.shape[1]
+        
+        # Mask out the prompt part in the target so the model doesn't try to predict it
+        tar[:, :trainenc_prompt_len] = -100
+        
+        # Shift the target by one position to the right (for response)
+        tar[:, trainenc_prompt_len:-1] = tar[:, trainenc_prompt_len+1:].clone()
+        tar[:, -1] = -100  # The last token has no target
+        
+        # Truncate or pad to the sequence length
+        if inp.size(1) > seqlen:
+            inp = inp[:, :seqlen]
+            tar = tar[:, :seqlen]
+        elif inp.size(1) < seqlen:
+            pad_len = seqlen - inp.size(1)
+            inp = torch.cat([inp, torch.full((1, pad_len), tokenizer.pad_token_id)], dim=1)
+            tar = torch.cat([tar, torch.full((1, pad_len), -100)], dim=1)
+
+        trainloader.append((inp, tar))
+    
+    return trainloader, None
+
+
+
 # Function to select the appropriate loader based on dataset name
 def get_loaders(
     name, nsamples=128, seed=0, seqlen=2048, tokenizer=None, disentangle=False
@@ -123,4 +168,8 @@ def get_loaders(
     if name == "align_short":
         return get_align(
             nsamples, seed, seqlen, tokenizer, disentangle=disentangle, mode="short"
+        )
+    if name == "gsm8k":
+        return get_gsm8k(
+            nsamples, seed, 2048, tokenizer
         )
